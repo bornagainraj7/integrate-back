@@ -1,0 +1,10 @@
+{
+  "editor.formatOnSave": true,
+  "prettier.eslintIntegration": true,
+  "editor.tabSize": 2,
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "prettier.endOfLine": "lf",
+  "files.trimFinalNewlines": true,
+  "prettier.semi": true
+}

@@ -4,6 +4,7 @@ const http = require('http');
 const csrf = require('csurf');
 const bodyParser = require('body-parser');
 const logger = require('tracer').colorConsole();
+const authRoutes = require('./app/routes/auth.routes');
 
 const app = express();
 const MONGODB_URI = 'mongodb://127.0.0.1:27017/InsuranceSamadhan';
@@ -86,7 +87,7 @@ const onListening = () => {
 
 
 // Routes
-
+app.use('/api/v1/auth', authRoutes);
 
 app.set('port', port);
 

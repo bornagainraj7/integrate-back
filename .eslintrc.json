@@ -22,6 +22,8 @@
     "class-methods-use-this": "off",
     "no-restricted-globals": "off",
     "max-len": "warn",
-    "arrow-body-style": "off"
+    "arrow-body-style": "off",
+    "no-underscore-dangle": "off",
+    "consistent-return": "off"
   }
 }

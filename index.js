@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const http = require('http');
+
 // const csrf = require('csurf');
 const bodyParser = require('body-parser');
 const logger = require('tracer').colorConsole();
@@ -22,19 +23,19 @@ const MONGODB_URI = `mongodb://127.0.0.1:27017/${config.db}`;
 //   next();
 // });
 
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
 
 // Set Headers for CORS
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization',
+  );
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   next();
 });
-
 
 // Route logger
 app.use((req, res, next) => {
@@ -82,14 +83,13 @@ const onListening = () => {
   const addr = server.address();
   const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${port}`;
   logger.info(`Listening on ${bind}`);
-  mongoose.connect(MONGODB_URI,
-    { useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose
+    .connect(MONGODB_URI, { useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
       logger.info('Database connected successfully');
     })
     .catch((err) => logger.error(err));
 };
-
 
 // ejs
 app.set('view engine', 'ejs');
@@ -100,7 +100,6 @@ app.use('/api/v1/lead', leadRoutes);
 app.use('/api/v1/ins-comp', insuranceCompanyRoutes);
 app.use('/api/v1/com-type', complaintTypeRoutes);
 app.use('/api/v1/policy-type', policyTypeRoutes);
-
 
 app.set('port', port);
 

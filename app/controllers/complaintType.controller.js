@@ -11,14 +11,14 @@ exports.getAllComplaintTypes = async (req, res) => {
   try {
     let complaints;
     let insComplaints;
-    const cache_data = await cache._get(insComplaints);
-    if (!cache_data) {
+    const cacheData = await cache._get(insComplaints);
+    if (!cacheData) {
       complaints = await ComplaintTypeModel.find().lean();
       /* set cache */
       cache._set(insComplaints, JSON.stringify(complaints));
     } else {
-      complaints = JSON.parse(cache_data);
-      // console.log('From Case....', complaints);
+      complaints = JSON.parse(cacheData);
+      logger.info('From Case....', complaints);
     }
     return responseLib.success(
       res,

@@ -11,20 +11,20 @@ exports.getAllInsuranceCompaies = async (req, res) => {
   try {
     let insCompanies;
     let insCompany;
-    const cache_data = await cache._get(insCompany);
-    if (!cache_data) {
+    const cacheData = await cache._get(insCompany);
+    if (!cacheData) {
       insCompanies = await InsuranceCompanyModel.find().lean();
       /* set cache */
       cache._set(insCompany, JSON.stringify(insCompanies));
     } else {
-      insCompanies = JSON.parse(cache_data);
-      console.log('From Case....', insCompanies);
+      insCompanies = JSON.parse(cacheData);
+      logger.info('From Case....', insCompanies);
     }
     return responseLib.success(
       res,
       200,
       insCompanies,
-      'All Insurance Companies fetched successfully',
+      'All Insurance Companies fetched successfully'
     );
   } catch (error) {
     logger.error(error);

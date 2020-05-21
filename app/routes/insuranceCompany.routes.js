@@ -4,8 +4,10 @@ const InsuranceCompanyController = require('../controllers/insuranceCompany.cont
 
 const router = express.Router();
 
-
-router.get('/getall', authMiddleware.isAuthorised, InsuranceCompanyController.getAllInsuranceCompaies);
-
+router.get(
+  '/getall',
+  authMiddleware.isAuthorised,
+  InsuranceCompanyController.getAllInsuranceCompaies,
+);
 
 module.exports = router;

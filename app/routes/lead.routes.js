@@ -4,7 +4,6 @@ const authMiddleware = require('../middlewares/auth.middleware');
 
 const router = express.Router();
 
-
 router.post('/new', authMiddleware.isAuthorised, LeadController.newLead);
 
 router.put('/update/:leadId', authMiddleware.isAuthorised, LeadController.updateLead);

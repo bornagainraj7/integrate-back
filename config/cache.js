@@ -7,11 +7,13 @@ const defaultExpiry = 1 * 24 * 60 * 60;
 
 class Cache {
   constructor(options) {
-    if (!options)
+    if (!options) {
       throw new Error('no options specified while instantiating cache');
+    }
 
-    if (!options.namespace)
+    if (!options.namespace) {
       throw new Error('no "namespace" specified while instantiating cache');
+    }
 
     this.expiry = options.expiry || defaultExpiry;
     this.namespace = options.namespace;
@@ -26,6 +28,7 @@ class Cache {
     /*
      * Connect to REDIS
      */
+    // eslint-disable-next-line
     this.redis = new ioredis({
       retryStrategy: function (times) {
         return Math.min(times * 1000, 10000);

@@ -10,14 +10,14 @@ const cache = new Cache({
 exports.getAllPolicyTypes = async (req, res) => {
   try {
     let policies;
-    let policy_type;
-    const cache_data = await cache._get(policy_type);
-    if (!cache_data) {
+    let policyType;
+    const cacheData = await cache._get(policyType);
+    if (!cacheData) {
       policies = await PolicyTypeModel.find().lean();
-      cache._set(policy_type, JSON.stringify(policies));
+      cache._set(policyType, JSON.stringify(policies));
     } else {
-      policies = JSON.parse(cache_data);
-      // console.log('From Case....', cache_data);
+      policies = JSON.parse(cacheData);
+      // logger.info('From Case....', cacheData);
     }
     return responseLib.success(res, 200, policies, 'All Policies fetched successfully');
   } catch (error) {

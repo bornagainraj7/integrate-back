@@ -89,19 +89,19 @@ exports.updateLead = (req, res) => {
 exports.getLeadsByUser = async (req, res) => {
   const { userId } = req.user;
   const condition = { userId };
-  let leadData;
+  let allLeads;
   try {
-    const lead_data = await cache._get(userId);
-    if (!lead_data) {
-      leadData = await leadLib.getLeads(condition);
+    const leadData = await cache._get(userId);
+    if (!leadData) {
+      allLeads = await leadLib.getLeads(condition);
       /* set cache */
       cache._set(userId, JSON.stringify(leadData));
     } else {
-      leadData = JSON.parse(lead_data);
-      // console.log('From Case....', leadData);
+      allLeads = JSON.parse(leadData);
+      logger.info('From Case....', leadData);
     }
 
-    return responseLib.success(res, 200, leadData, 'All leads for the user fetched succcessfully');
+    return responseLib.success(res, 200, allLeads, 'All leads for the user fetched succcessfully');
   } catch (error) {
     logger.error(error);
     return responseLib.error(res, 500, null, 'Server Error occurred');

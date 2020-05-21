@@ -1,17 +1,19 @@
 const ioredis = require('ioredis');
-
+const logger = require('tracer').colorConsole();
 /*
  * Set the default expiry to 1 day
  */
-const default_expiry = 1 * 24 * 60 * 60;
+const defaultExpiry = 1 * 24 * 60 * 60;
 
 class Cache {
   constructor(options) {
-    if (!options) throw new Error('no options specified while instantiating cache');
+    if (!options)
+      throw new Error('no options specified while instantiating cache');
 
-    if (!options.namespace) throw new Error('no "namespace" specified while instantiating cache');
+    if (!options.namespace)
+      throw new Error('no "namespace" specified while instantiating cache');
 
-    this.expiry = options.expiry || default_expiry;
+    this.expiry = options.expiry || defaultExpiry;
     this.namespace = options.namespace;
 
     /*
@@ -32,18 +34,18 @@ class Cache {
     });
 
     this.redis.on('connect', () => {
-      console.log('redis connection ok');
+      logger.info('redis connection ok');
     });
 
     this.redis.on('error', (err) => {
-      console.log({ err }, 'redis connection error');
+      logger.info({ err }, 'redis connection error');
     });
 
     this.redis.on('close', () => {
-      console.log('redis connection closed');
+      logger.info('redis connection closed');
     });
     this.redis.on('reconnecting', () => {
-      console.log('redis reconnecting ...');
+      logger.info('redis reconnecting ...');
     });
   }
 

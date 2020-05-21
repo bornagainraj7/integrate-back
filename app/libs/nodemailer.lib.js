@@ -38,14 +38,16 @@ exports.signUpEmail = (userData, token) => {
   };
 
   return new Promise((resolve, reject) => {
-    transport.sendMail(mailOptions)
-      .then((result) => {
-        return resolve(result);
-      })
-      .catch((error) => {
-        logger.error(error);
-        return reject(error);
-      });
+    if (config.env !== 'dev') {
+      transport.sendMail(mailOptions)
+        .then((result) => {
+          return resolve(result);
+        })
+        .catch((error) => {
+          logger.error(error);
+          return reject(error);
+        });
+    }
   });
 };
 
@@ -60,25 +62,27 @@ exports.leadSubmittedEmail = async (leadData) => {
                     <strong>The Most trusted platform for resolving insurance complaints in INDIA</strong>`;
 
   return new Promise((resolve, reject) => {
-    userLib.getSingleUserFromUsers({ _id: leadData.userId })
-      .then((userData) => {
-        mailOptions = {
-          from: 'corporate@insurancesamadhan.com',
-          to: `${leadData.email}`,
-          cc: `deepak@insurancesamadhan.com, ${userData.email}`,
-          subject: 'Query Submitted at Insurance Samadhan',
-          html: mailBody,
-        };
+    if (config.env !== 'dev') {
+      userLib.getSingleUserFromUsers({ _id: leadData.userId })
+        .then((userData) => {
+          mailOptions = {
+            from: 'corporate@insurancesamadhan.com',
+            to: `${leadData.email}`,
+            cc: `deepak@insurancesamadhan.com, ${userData.email}`,
+            subject: 'Query Submitted at Insurance Samadhan',
+            html: mailBody,
+          };
 
-        return transport.sendMail(mailOptions);
-      })
-      .then((result) => {
-        resolve(result);
-      })
-      .catch((error) => {
-        logger.error(error);
-        reject(error);
-      });
+          return transport.sendMail(mailOptions);
+        })
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((error) => {
+          logger.error(error);
+          reject(error);
+        });
+    }
   });
 };
 

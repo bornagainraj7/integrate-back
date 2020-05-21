@@ -17,7 +17,10 @@ exports.getLeads = (condition) => {
   return new Promise((resolve, reject) => {
     LeadModel.find(condition)
       .populate('userId')
+      .populate('policyTypeId')
+      .populate('complaintTypeId')
       .lean()
+      .sort({ createdAt: -1 })
       .then((results) => {
         resolve(results);
       })

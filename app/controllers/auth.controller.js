@@ -126,23 +126,28 @@ exports.loginUser = async (req, res) => {
       throw new Error('not-verified');
     }
     await bcryptjs.compare(password, authData.password);
-    const user = await userLib.getSingleUserFromUsers({ email });
 
-    const time = now.getTime();
-    const expiry = new Date(userData.validUpto).getTime() - 60000;
-    if (time > expiry) {
-      token = await tokenLib.generateToken(user);
-      now.setDate(now.getDate() + 30);
-      const data = {
-        token,
-        validUpto: now,
-      };
-      await authLib.updateUserInAuth({ _id: userData._id }, data);
-    } else {
-      token = userData.token;
-    }
+    token = await tokenLib.generateToken(userData);
+    now.setDate(now.getDate() + 30);
+    const data = {
+      token,
+      validUpto: now,
+    };
+    await authLib.updateUserInAuth({ userId: userData._id }, data);
 
-    user.token = token;
+    const user = {
+      _id: userData._id,
+      email: userData.email,
+      userType: userData.userType,
+      name: userData.name,
+      mobile: userData.mobile,
+      isBlocked: userData.isBlocked,
+      isVerified: userData.isVerified,
+      isActive: userData.isActive,
+      token: token,
+      tokenExpiry: now.getTime(),
+    };
+
     return responseLib.success(res, 201, user, 'User Logged-in successfully');
   } catch (error) {
     logger.error(error);
@@ -150,7 +155,7 @@ exports.loginUser = async (req, res) => {
       return responseLib.error(res, 401, null, 'Please click on the link in your registered email and verify your account to login');
     }
     if (error.message === 'No user found') {
-      return responseLib.error(res, 401, null, 'We had error finding the user');
+      return responseLib.error(res, 401, null, 'We had error finding the user with the given credentials');
     }
     return responseLib.error(res, 500, null, 'Server Error Occurred');
   }
@@ -206,5 +211,19 @@ exports.verifyUser = async (req, res) => {
       return responseLib.success(res, 200, userData, 'User already verified');
     }
     return responseLib.error(res, 500, null, 'Server Error Occurred');
+  }
+};
+
+
+exports.logout = async (req, res) => {
+  const { token } = req.user;
+  const query = { token };
+  const data = { token: '', validUpto: new Date() };
+  try {
+    await authLib.updateUserInAuth(query, data);
+    return responseLib.success(res, 201, null, 'You\'ve Logged out successfully');
+  } catch (error) {
+    logger.error(error);
+    return responseLib.success(res, 500, null, 'Server Error Occurred');
   }
 };

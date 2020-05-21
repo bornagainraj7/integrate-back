@@ -9,6 +9,8 @@ router.post('/signup', AuthController.signupUser);
 
 router.post('/login', AuthController.loginUser);
 
+router.get('/logout', authMiddleware.logout, AuthController.logout);
+
 router.get('/verify/:token', authMiddleware.verifyFirstTime, AuthController.verifyUser);
 
 module.exports = router;

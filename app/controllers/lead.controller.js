@@ -48,7 +48,7 @@ exports.newLead = async (req, res) => {
 
     const lead = await newLead.save();
 
-    await nodemailerLib.leadSubmitted(lead);
+    await nodemailerLib.leadSubmittedEmail(lead);
     return responseLib.success(res, 201, lead, 'new lead added successfully');
   } catch (error) {
     logger.error(error);

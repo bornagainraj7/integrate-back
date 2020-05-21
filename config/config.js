@@ -4,7 +4,7 @@ const path = require('path');
 const rootPath = path.normalize(path.join(__dirname, '/..'));
 const env = process.env.NODE_ENV || 'dev';
 const port = process.env.PORT;
-const dbConnection = process.env.MONGO_CONNECTION;
+// const dbConnection = process.env.MONGO_CONNECTION;
 const appName = 'Insurance-Samadhan';
 
 const config = {

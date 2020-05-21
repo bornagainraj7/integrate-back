@@ -6,5 +6,4 @@ const router = express.Router();
 
 router.get('/get/:policyTypeId', ComplaintTypeController.getComplaintTypes);
 
-
 module.exports = router;

@@ -3,6 +3,11 @@ const axios = require('axios').default;
 const PolicyTypeModel = require('../models/policyType.model');
 const responseLib = require('../libs/response.lib');
 
+const Cache = require('../../config/cache');
+
+const cache = new Cache({
+  namespace: 'policy:Type',
+});
 exports.getAllPolicyTypes = async (req, res) => {
   let policyTypes;
   try {

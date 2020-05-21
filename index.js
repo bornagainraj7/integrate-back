@@ -36,11 +36,13 @@ app.use('/apidocs', express.static(path.join(__dirname, '/apidoc')));
 // Set Headers for CORS
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization',
+  );
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   next();
 });
-
 
 // Route logger
 app.use((req, res, next) => {
@@ -88,14 +90,13 @@ const onListening = () => {
   const addr = server.address();
   const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${port}`;
   logger.info(`Listening on ${bind}`);
-  mongoose.connect(MONGODB_URI,
-    { useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true })
+  mongoose
+    .connect(MONGODB_URI, { useCreateIndex: true, useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => {
       logger.info('Database connected successfully');
     })
     .catch((err) => logger.error(err));
 };
-
 
 // ejs
 app.set('view engine', 'ejs');
@@ -107,7 +108,6 @@ app.use('/api/v1/ins-comp', insuranceCompanyRoutes);
 app.use('/api/v1/com-type', complaintTypeRoutes);
 app.use('/api/v1/policy-type', policyTypeRoutes);
 app.use('/api/v1/user', userRoutes);
-
 
 app.set('port', port);
 

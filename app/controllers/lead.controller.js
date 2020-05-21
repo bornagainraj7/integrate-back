@@ -8,7 +8,11 @@ const LeadCounterModel = require('../models/leadCounter.model');
 const leadLib = require('../libs/lead.lib');
 const responseLib = require('../libs/response.lib');
 const nodemailerLib = require('../libs/nodemailer.lib');
+const Cache = require('../../config/cache');
 
+const cache = new Cache({
+  namespace: 'Lead:byUser',
+});
 
 exports.newLead = async (req, res) => {
   const { body } = req;
@@ -171,9 +175,19 @@ exports.getLeadsByUser = async (req, res) => {
   const size = parseInt(req.query.size, 10);
   const { userId } = req.user;
   const condition = { userId };
+  let leadData;
   try {
-    const leads = await leadLib.getLeads(condition, page, size);
-    return responseLib.success(res, 200, leads, 'All leads for the user fetched succcessfully');
+    const lead_data = await cache._get(userId);
+    if (!lead_data) {
+      leadData = await leadLib.getLeads(condition);
+      /* set cache */
+      cache._set(userId, JSON.stringify(leadData));
+    } else {
+      leadData = JSON.parse(lead_data);
+      // console.log('From Case....', leadData);
+    }
+
+    return responseLib.success(res, 200, leadData, 'All leads for the user fetched succcessfully');
   } catch (error) {
     logger.error(error);
     return responseLib.error(res, 500, null, 'Server Error occurred');

@@ -2,6 +2,11 @@ const logger = require('tracer').colorConsole();
 const axios = require('axios').default;
 const ComplaintTypeModel = require('../models/complaintType.model');
 const responseLib = require('../libs/response.lib');
+const Cache = require('../../config/cache');
+
+const cache = new Cache({
+  namespace: 'Complaint:Type',
+});
 
 exports.getComplaintTypes = async (req, res) => {
   const { policyTypeId } = req.params || req.query;

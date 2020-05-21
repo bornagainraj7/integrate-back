@@ -2,6 +2,11 @@ const logger = require('tracer').colorConsole();
 const axios = require('axios').default;
 // const InsuranceCompanyModel = require('../models/insuranceCompany.model');
 const responseLib = require('../libs/response.lib');
+const Cache = require('../../config/cache');
+
+const cache = new Cache({
+  namespace: 'Insurance:Companys',
+});
 
 exports.getAllInsuranceCompaies = async (req, res) => {
   let insCompanies;

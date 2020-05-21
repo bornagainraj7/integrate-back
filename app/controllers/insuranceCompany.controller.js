@@ -26,15 +26,28 @@ exports.getAllInsuranceCompaies = async (req, res) => {
     let insCompany;
     const cacheData = await cache._get(insCompany);
     if (!cacheData) {
+<<<<<<< HEAD
       // insCompanies = await InsuranceCompanyModel.find().lean();
+=======
+      insCompanies = await InsuranceCompanyModel.find().lean();
+>>>>>>> work on redis cache
       /* set cache */
       cache._set(insCompany, JSON.stringify(insCompanies));
     } else {
       insCompanies = JSON.parse(cacheData);
       logger.info('From Case....', insCompanies);
     }
+<<<<<<< HEAD
 
     return responseLib.success(res, 200, insCompanies, 'All Insurance Companies fetched successfully');
+=======
+    return responseLib.success(
+      res,
+      200,
+      insCompanies,
+      'All Insurance Companies fetched successfully'
+    );
+>>>>>>> work on redis cache
   } catch (error) {
     logger.error(error);
     return responseLib.error(res, 500, null, 'Server Error Occurred');

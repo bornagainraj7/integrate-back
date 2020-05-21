@@ -35,7 +35,11 @@ exports.getComplaintTypes = async (req, res) => {
     let insComplaints;
     const cacheData = await cache._get(insComplaints);
     if (!cacheData) {
+<<<<<<< HEAD
       // complaints = await ComplaintTypeModel.find().lean();
+=======
+      complaints = await ComplaintTypeModel.find().lean();
+>>>>>>> work on redis cache
       /* set cache */
       cache._set(insComplaints, JSON.stringify(complaints));
     } else {

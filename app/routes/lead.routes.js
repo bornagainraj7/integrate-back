@@ -5,7 +5,6 @@ const multer = require('../middlewares/multer.middleware');
 
 const router = express.Router();
 
-
 router.post('/new', authMiddleware.isAuthorised, LeadController.newLead);
 
 router.put('/update/:leadId', authMiddleware.isAuthorised, LeadController.updateLead);

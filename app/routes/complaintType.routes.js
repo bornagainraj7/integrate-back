@@ -4,8 +4,6 @@ const ComplaintTypeController = require('../controllers/complaintType.controller
 
 const router = express.Router();
 
-
 router.get('/getall', authMiddleware.isAuthorised, ComplaintTypeController.getAllComplaintTypes);
-
 
 module.exports = router;

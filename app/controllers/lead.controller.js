@@ -4,13 +4,19 @@ const LeadModel = require('../models/lead.model');
 const leadLib = require('../libs/lead.lib');
 const responseLib = require('../libs/response.lib');
 const nodemailerLib = require('../libs/nodemailer.lib');
+const Cache = require('../../config/cache');
 
+const cache = new Cache({
+  namespace: 'Lead:byUser',
+});
 
 exports.newLead = async (req, res) => {
   const { body } = req;
   try {
     const leadCount = await leadLib.count({});
-    const leadId = moment().utcOffset(330).format(`YYYY-MM-DD-${leadCount + 1}`);
+    const leadId = moment()
+      .utcOffset(330)
+      .format(`YYYY-MM-DD-${leadCount + 1}`);
 
     const newLead = new LeadModel({
       // eslint-disable-next-line
@@ -21,8 +27,8 @@ exports.newLead = async (req, res) => {
       createdAt: Date.now(),
       updatedAt: Date.now(),
       communication: {
-        'com_date': new Date(),
-        'com_dis': body.ivr_discription,
+        com_date: new Date(),
+        com_dis: body.ivr_discription,
       },
       // created_date: Date.now(),
       // name: body.name,
@@ -83,9 +89,19 @@ exports.updateLead = (req, res) => {
 exports.getLeadsByUser = async (req, res) => {
   const { userId } = req.user;
   const condition = { userId };
+  let leadData;
   try {
-    const leads = await leadLib.getLeads(condition);
-    return responseLib.success(res, 200, leads, 'All leads for the user fetched succcessfully');
+    const lead_data = await cache._get(userId);
+    if (!lead_data) {
+      leadData = await leadLib.getLeads(condition);
+      /* set cache */
+      cache._set(userId, JSON.stringify(leadData));
+    } else {
+      leadData = JSON.parse(lead_data);
+      // console.log('From Case....', leadData);
+    }
+
+    return responseLib.success(res, 200, leadData, 'All leads for the user fetched succcessfully');
   } catch (error) {
     logger.error(error);
     return responseLib.error(res, 500, null, 'Server Error occurred');

@@ -104,7 +104,7 @@ exports.getLeadsByUser = async (req, res) => {
     } else {
       allLeads = JSON.parse(leadData);
       logger.info('From Case....', leadData);
-   }
+    }
 
     return responseLib.success(res, 200, allLeads, 'All leads for the user fetched succcessfully');
   } catch (error) {

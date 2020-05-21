@@ -13,8 +13,7 @@ exports.generateToken = (data) => {
         userId: data._id,
         email: data.email,
         mobile: data.mobile,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        name: data.name,
         userType: data.userType,
       };
       const expiry = {

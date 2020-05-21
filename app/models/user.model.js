@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
+const uuid = require('uuid');
 
 const userSchema = mongoose.Schema({
-  firstName: { type: String },
-  lastName: { type: String },
-  fullName: { type: String },
+  _id: { type: String, default: uuid.v4 },
+  name: { type: String },
   mobile: {
     type: String,
     index: true,
@@ -17,11 +17,20 @@ const userSchema = mongoose.Schema({
     unique: true,
     required: true,
   },
-  isBlocked: { type: Boolean },
   userType: { type: String },
-  createdOn: { type: Date, default: new Date() },
+  isBlocked: { type: Boolean },
+  isActive: { type: Boolean },
+  isVerified: { type: Boolean },
+  isAgreed: { type: Boolean },
+  agreedOn: { type: Date },
+  createdAt: { type: Number, default: null },
 });
 
 userSchema.plugin(uniqueValidator);
 
-module.exports = mongoose.model('User', userSchema);
+userSchema.pre('save', function (next) {
+  this.createdAt = Date.now();
+  return next();
+});
+
+module.exports = mongoose.model('user', userSchema, 'user');

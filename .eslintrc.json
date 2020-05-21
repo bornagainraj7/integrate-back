@@ -24,6 +24,8 @@
     "max-len": "warn",
     "arrow-body-style": "off",
     "no-underscore-dangle": "off",
-    "consistent-return": "off"
+    "consistent-return": "off",
+    "quote-props": "off",
+    "node/no-unsupported-features/es-syntax": "off"
   }
 }

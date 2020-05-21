@@ -21,13 +21,14 @@ exports.getSingleUserFromAuth = (condition) => {
 };
 
 exports.updateUserInAuth = (query, data) => {
+  logger.info(query);
   return new Promise((resolve, reject) => {
     AuthModel.updateOne(query, data)
       .then((result) => {
-        if (result.n > 1) {
+        if (result.nModified > 0) {
           resolve('Updated');
         } else {
-          reject(new Error('No user modified'));
+          reject(new Error('No user modified in Auth'));
         }
       })
       .catch((error) => {

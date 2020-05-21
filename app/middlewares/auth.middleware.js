@@ -1,6 +1,6 @@
 const logger = require('tracer').colorConsole();
 const tokenLib = require('../libs/token.lib');
-const response = require('../libs/response.lib');
+const responseLib = require('../libs/response.lib');
 
 exports.isAuthorised = (req, res, next) => {
   let token;
@@ -9,27 +9,42 @@ exports.isAuthorised = (req, res, next) => {
     const bearer = bearerHeader.split(' ');
     [, token] = bearer;
   } else {
-    token = req.query.authToken || req.params.authToken || req.body.authToken;
+    token = req.query.authorization || req.params.authorization || req.body.authorization;
   }
 
   if (token) {
     tokenLib.verifyToken(token)
       .then((decoded) => {
         req.user = {
-          userId: decoded.userId,
-          email: decoded.email,
-          mobile: decoded.mobile,
-          firstName: decoded.firstName,
-          lastName: decoded.lastName,
-          userType: decoded.userType,
+          ...decoded,
         };
-        next();
+        return next();
       })
       .catch((error) => {
         logger.error(error);
-        return response.error(res, 401, null, 'Error while verifying Authtoken');
+        return responseLib.error(res, 401, null, 'Error while verifying Authtoken');
       });
   } else {
-    return response.error(res, 401, null, 'No Auth token found');
+    return responseLib.error(res, 401, null, 'No Auth token found');
+  }
+};
+
+
+exports.verifyFirstTime = (req, res, next) => {
+  const { token } = req.params;
+  if (token) {
+    tokenLib.verifyToken(token)
+      .then((decoded) => {
+        req.user = {
+          ...decoded,
+        };
+        return next();
+      })
+      .catch((error) => {
+        logger.error(error);
+        return responseLib.error(res, 401, null, 'Error while verifying Authtoken');
+      });
+  } else {
+    return responseLib.error(res, 401, null, 'No Auth token found');
   }
 };

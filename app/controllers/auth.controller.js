@@ -1,8 +1,10 @@
 const logger = require('tracer').colorConsole();
 const bcryptjs = require('bcryptjs');
+// const ejs = require('ejs');
+const nodemailerLib = require('../libs/nodemailer.lib');
 const AuthModel = require('../models/auth.model');
 const UserModel = require('../models/user.model');
-const response = require('../libs/response.lib');
+const responseLib = require('../libs/response.lib');
 const tokenLib = require('../libs/token.lib');
 const authLib = require('../libs/auth.lib');
 const userLib = require('../libs/user.lib');
@@ -12,10 +14,9 @@ exports.signupUser = (req, res) => {
   const { body } = req;
   const { email } = body;
   const { password } = body;
-  const { firstName } = body;
-  const { lastName } = body;
+  const { name } = body;
   const { mobile } = body;
-  const { userType } = body;
+  let { userType } = body;
   let userData;
   let userToken;
   let hash;
@@ -23,16 +24,23 @@ exports.signupUser = (req, res) => {
 
   const createAccount = () => {
     return new Promise((resolve, reject) => {
+      if (!userType) {
+        userType = 'Advisor';
+      }
       const user = new UserModel({
-        firstName,
-        lastName,
+        name,
         email,
         mobile,
         userType,
+        isBlocked: false,
+        isAgreed: false,
+        isActive: false,
+        isVerified: false,
       });
 
       return user.save()
         .then((savedUser) => {
+          userData = savedUser;
           resolve(savedUser);
         })
         .catch((err) => {
@@ -55,12 +63,13 @@ exports.signupUser = (req, res) => {
           userToken = token;
           const { _id } = userData;
           const auth = new AuthModel({
-            _id,
+            userId: _id,
             email,
             mobile,
-            password: hash,
             token,
-            now,
+            password: hash,
+            validUpto: now,
+            isVerified: false,
           });
           return auth.save();
         })
@@ -74,15 +83,27 @@ exports.signupUser = (req, res) => {
     });
   };
 
+
   (async () => {
     try {
       await createAccount();
       await generateToken();
-      userData.token = userToken;
-      return response.success(res, 201, userData, 'User created successfully');
+      await nodemailerLib.signUpEmail(userData, userToken);
+      userData = {
+        _id: userData._id,
+        name: userData.name,
+        email: userData.email,
+        mobile: userData.mobile,
+        userType: userData.userType,
+        createdAt: userData.createdAt,
+        isBlocked: userData.isBlocked,
+        isVerified: userData.isVerified,
+        isAgreed: userData.isAgreed,
+      };
+      return responseLib.success(res, 201, userData, 'Registration successful, please check you registered email address for a confirmation and click on the confirmation link.');
     } catch (error) {
       logger.error(error);
-      return response.error(res, 500, null, 'Server error occured, try again later');
+      return responseLib.error(res, 500, null, 'Server error occured, try again later');
     }
   })();
 };
@@ -93,12 +114,18 @@ exports.loginUser = async (req, res) => {
   const { email } = body;
   const { password } = body;
   let userData;
+  let authData;
   let token;
   const now = new Date();
 
   try {
-    userData = await authLib.getSingleUserFromAuth({ email });
-    await bcryptjs.compare(password, userData.password);
+    userData = await userLib.getSingleUserFromUsers({ email });
+    authData = await authLib.getSingleUserFromAuth({ email });
+
+    if (!userData.isAgreed && !userData.isVerified) {
+      throw new Error('not-verified');
+    }
+    await bcryptjs.compare(password, authData.password);
     const user = await userLib.getSingleUserFromUsers({ email });
 
     const time = now.getTime();
@@ -116,9 +143,68 @@ exports.loginUser = async (req, res) => {
     }
 
     user.token = token;
-    return response.success(res, 201, user, 'User Logged-in successfully');
+    return responseLib.success(res, 201, user, 'User Logged-in successfully');
   } catch (error) {
     logger.error(error);
-    return response.error(res, 500, null, 'Server Error Occurred');
+    if (error.message === 'not-verified') {
+      return responseLib.error(res, 401, null, 'Please click on the link in your registered email and verify your account to login');
+    }
+    if (error.message === 'No user found') {
+      return responseLib.error(res, 401, null, 'We had error finding the user');
+    }
+    return responseLib.error(res, 500, null, 'Server Error Occurred');
+  }
+};
+
+exports.verifyUser = async (req, res) => {
+  const { userId } = req.user;
+  const { token } = req.params;
+  let userData;
+  let decoded;
+  const userUpdate = {
+    isActive: true,
+    isVerified: true,
+    isAgreed: true,
+    agreedOn: new Date(),
+  };
+  const authUpdate = {
+    isVerified: true,
+  };
+  try {
+    decoded = await tokenLib.verifyToken(token);
+    await userLib.updateUserInUsers({ _id: userId, agreedOn: undefined }, userUpdate);
+    await authLib.updateUserInAuth({ userId }, authUpdate);
+    const issueDate = new Date(decoded.jwtId);
+    issueDate.setDate(issueDate.getDate() + 30);
+
+    userData = {
+      _id: decoded.userId,
+      email: decoded.email,
+      userType: decoded.userType,
+      name: decoded.name,
+      mobile: decoded.mobile,
+      token: token,
+      tokenExpiry: issueDate.getTime(),
+    };
+
+    return responseLib.success(res, 200, userData, 'User verified successfully');
+  } catch (error) {
+    logger.error(error);
+    if (error.message === 'No user modified in Auth' || error.message === 'No user modified in User') {
+      const issueDate = new Date(decoded.jwtId);
+      issueDate.setDate(issueDate.getDate() + 30);
+
+      userData = {
+        _id: decoded.userId,
+        email: decoded.email,
+        userType: decoded.userType,
+        name: decoded.name,
+        mobile: decoded.mobile,
+        token: token,
+        tokenExpiry: issueDate.getTime(),
+      };
+      return responseLib.success(res, 200, userData, 'User already verified');
+    }
+    return responseLib.error(res, 500, null, 'Server Error Occurred');
   }
 };

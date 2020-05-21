@@ -1,21 +1,26 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const http = require('http');
-const csrf = require('csurf');
+// const csrf = require('csurf');
 const bodyParser = require('body-parser');
 const logger = require('tracer').colorConsole();
+const config = require('./config/config');
 const authRoutes = require('./app/routes/auth.routes');
+const leadRoutes = require('./app/routes/lead.routes');
+const complaintTypeRoutes = require('./app/routes/complaintType.routes');
+const insuranceCompanyRoutes = require('./app/routes/insuranceCompany.routes');
+const policyTypeRoutes = require('./app/routes/policyType.routes');
 
 const app = express();
-const MONGODB_URI = 'mongodb://127.0.0.1:27017/InsuranceSamadhan';
+const MONGODB_URI = `mongodb://127.0.0.1:27017/${config.db}`;
 
-const csrfProtection = csrf();
-app.use(csrfProtection);
+// const csrfProtection = csrf();
+// app.use(csrfProtection);
 
-app.use((req, res, next) => {
-  res.locals.csrfToken = req.csrfToken();
-  next();
-});
+// app.use((req, res, next) => {
+//   res.locals.csrfToken = req.csrfToken();
+//   next();
+// });
 
 
 app.use(bodyParser.json());
@@ -25,7 +30,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // Set Headers for CORS
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, authToken, Authorization');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   next();
 });
@@ -52,7 +57,7 @@ const normalizePort = (val) => {
   return false;
 };
 
-const port = normalizePort(process.env.PORT || 3000);
+const port = normalizePort(config.port);
 const server = http.createServer(app);
 
 const onError = (error) => {
@@ -86,8 +91,16 @@ const onListening = () => {
 };
 
 
+// ejs
+app.set('view engine', 'ejs');
+
 // Routes
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/lead', leadRoutes);
+app.use('/api/v1/ins-comp', insuranceCompanyRoutes);
+app.use('/api/v1/com-type', complaintTypeRoutes);
+app.use('/api/v1/policy-type', policyTypeRoutes);
+
 
 app.set('port', port);
 

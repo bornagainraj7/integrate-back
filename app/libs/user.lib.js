@@ -19,3 +19,20 @@ exports.getSingleUserFromUsers = (condition) => {
       });
   });
 };
+
+exports.updateUserInUsers = (query, data) => {
+  logger.info(query);
+  return new Promise((resolve, reject) => {
+    UserModel.updateOne(query, data)
+      .then((result) => {
+        if (result.nModified > 0) {
+          resolve('Updated');
+        } else {
+          reject(new Error('No user modified in User'));
+        }
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};

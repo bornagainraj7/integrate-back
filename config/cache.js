@@ -1,4 +1,5 @@
 const ioredis = require('ioredis');
+<<<<<<< HEAD
 const logger = require('tracer').colorConsole();
 /*
  * Set the default expiry to 1 day
@@ -16,6 +17,21 @@ class Cache {
     }
 
     this.expiry = options.expiry || defaultExpiry;
+=======
+
+/*
+ * Set the default expiry to 1 day
+ */
+const default_expiry = 1 * 24 * 60 * 60;
+
+class Cache {
+  constructor(options) {
+    if (!options) throw new Error('no options specified while instantiating cache');
+
+    if (!options.namespace) throw new Error('no "namespace" specified while instantiating cache');
+
+    this.expiry = options.expiry || default_expiry;
+>>>>>>> work on redis cache
     this.namespace = options.namespace;
 
     /*

@@ -23,6 +23,17 @@ exports.getAllInsuranceCompaies = async (req, res) => {
           return a.name > b.name ? 1 : -1;
         });
     }
+    let insCompany;
+    const cache_data = await cache._get(insCompany);
+    if (!cache_data) {
+      // insCompanies = await InsuranceCompanyModel.find().lean();
+      /* set cache */
+      cache._set(insCompany, JSON.stringify(insCompanies));
+    } else {
+      insCompanies = JSON.parse(cache_data);
+      console.log('From Case....', insCompanies);
+    }
+
     return responseLib.success(res, 200, insCompanies, 'All Insurance Companies fetched successfully');
   } catch (error) {
     logger.error(error);

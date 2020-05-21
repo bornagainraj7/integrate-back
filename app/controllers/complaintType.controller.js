@@ -32,6 +32,16 @@ exports.getComplaintTypes = async (req, res) => {
         { upsert: true, new: true },
       );
     });
+    let insComplaints;
+    const cache_data = await cache._get(insComplaints);
+    if (!cache_data) {
+      // complaints = await ComplaintTypeModel.find().lean();
+      /* set cache */
+      cache._set(insComplaints, JSON.stringify(complaints));
+    } else {
+      complaints = JSON.parse(cache_data);
+      // console.log('From Case....', complaints);
+    }
     return responseLib.success(res, 200, complaints, 'All Complaint Types fetched successfully');
   } catch (error) {
     logger.error(error);

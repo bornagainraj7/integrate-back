@@ -9,12 +9,12 @@ const cache = new Cache({
   namespace: 'policy:Type',
 });
 exports.getAllPolicyTypes = async (req, res) => {
-  let policyTypes;
+  let policies;
   try {
     // const policies = await PolicyTypeModel.find().select('-__v').lean();
     const response = await axios.get('https://api.insurancesamadhan.com/policy_type');
     if (response.data.success) {
-      policyTypes = response.data.data
+      policies = response.data.data
         .map((data) => {
           delete data.__v;
           return data;
@@ -24,7 +24,7 @@ exports.getAllPolicyTypes = async (req, res) => {
         });
     }
 
-    policyTypes.forEach(async (policy) => {
+    policies.forEach(async (policy) => {
       // await new PolicyTypeModel(policy).save();
       await PolicyTypeModel.findByIdAndUpdate(
         { _id: policy._id },
@@ -32,7 +32,16 @@ exports.getAllPolicyTypes = async (req, res) => {
         { upsert: true, new: true },
       );
     });
-    return responseLib.success(res, 200, policyTypes, 'All Policies fetched successfully');
+    let policy_type;
+    const cache_data = await cache._get(policy_type);
+    if (!cache_data) {
+      policies = await PolicyTypeModel.find().lean();
+      cache._set(policy_type, JSON.stringify(policies));
+    } else {
+      policies = JSON.parse(cache_data);
+      // console.log('From Case....', cache_data);
+    }
+    return responseLib.success(res, 200, policies, 'All Policies fetched successfully');
   } catch (error) {
     logger.error(error);
     return responseLib.error(res, 500, null, 'Server Error Occurred');

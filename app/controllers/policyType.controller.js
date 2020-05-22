@@ -11,7 +11,6 @@ const cache = new Cache({
 exports.getAllPolicyTypes = async (req, res) => {
   let policies;
   try {
-<<<<<<< HEAD
     // const policies = await PolicyTypeModel.find().select('-__v').lean();
     const response = await axios.get('https://api.insurancesamadhan.com/policy_type');
     if (response.data.success) {
@@ -33,9 +32,6 @@ exports.getAllPolicyTypes = async (req, res) => {
         { upsert: true, new: true },
       );
     });
-=======
-    let policies;
->>>>>>> work on redis cache
     let policyType;
     const cacheData = await cache._get(policyType);
     if (!cacheData) {

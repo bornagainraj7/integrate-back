@@ -1,11 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const http = require('http');
-<<<<<<< HEAD
 const path = require('path');
-=======
-
->>>>>>> work on redis cache
 // const csrf = require('csurf');
 const bodyParser = require('body-parser');
 const logger = require('tracer').colorConsole();
@@ -28,7 +24,6 @@ const MONGODB_URI = `mongodb://127.0.0.1:27017/${config.db}`;
 //   next();
 // });
 
-<<<<<<< HEAD
 
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -38,11 +33,6 @@ app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 app.use('/apidocs', express.static(path.join(__dirname, '/apidoc')));
 
 
-=======
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
->>>>>>> work on redis cache
 // Set Headers for CORS
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');

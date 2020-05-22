@@ -176,18 +176,11 @@ exports.getLeadsByUser = async (req, res) => {
   const { userId } = req.user;
   const condition = { userId };
   let allLeads;
-<<<<<<< HEAD
   let userIdForLead;
   try {
     const leadData = await cache._get(userIdForLead);
     if (!leadData) {
       allLeads = await leadLib.getLeads(condition, page, size);
-=======
-  try {
-    const leadData = await cache._get(userId);
-    if (!leadData) {
-      allLeads = await leadLib.getLeads(condition);
->>>>>>> work on redis cache
       /* set cache */
       cache._set(userIdForLead, JSON.stringify(allLeads));
     } else {

@@ -176,16 +176,17 @@ exports.getLeadsByUser = async (req, res) => {
   const { userId } = req.user;
   const condition = { userId };
   let allLeads;
+  let userIdForLead;
   try {
-    const leadData = await cache._get(userId);
+    const leadData = await cache._get(userIdForLead);
     if (!leadData) {
       allLeads = await leadLib.getLeads(condition);
       /* set cache */
-      cache._set(userId, JSON.stringify(leadData));
+      cache._set(userIdForLead, JSON.stringify(allLeads));
     } else {
       allLeads = JSON.parse(leadData);
       logger.info('From Case....', leadData);
-    }
+   }
 
     return responseLib.success(res, 200, allLeads, 'All leads for the user fetched succcessfully');
   } catch (error) {

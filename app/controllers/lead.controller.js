@@ -81,13 +81,27 @@ exports.updateLead = (req, res) => {
 };
 
 exports.getLeadsByUser = async (req, res) => {
+  const page = parseInt(req.query.page, 10);
+  const size = parseInt(req.query.size, 10);
   const { userId } = req.user;
   const condition = { userId };
   try {
-    const leads = await leadLib.getLeads(condition);
+    const leads = await leadLib.getLeads(condition, page, size);
     return responseLib.success(res, 200, leads, 'All leads for the user fetched succcessfully');
   } catch (error) {
     logger.error(error);
     return responseLib.error(res, 500, null, 'Server Error occurred');
+  }
+};
+
+exports.countLeadsByUser = async (req, res) => {
+  const { userId } = req.user;
+  const condition = { userId };
+  try {
+    const count = await leadLib.getLeadsCount(condition);
+    return responseLib.success(res, 200, count, 'Number of leads fetched');
+  } catch (error) {
+    logger.error(error);
+    return responseLib.error(res, 500, null, 'Server Error Occurred');
   }
 };

@@ -13,15 +13,18 @@ exports.count = (condition) => {
   });
 };
 
-exports.getLeads = (condition) => {
+exports.getLeads = (condition, page, size) => {
   return new Promise((resolve, reject) => {
     LeadModel.find(condition)
       .populate('userId')
       .populate('policyTypeId')
       .populate('complaintTypeId')
-      .lean()
       .sort({ createdAt: -1 })
+      .skip(page * size)
+      .limit(size)
+      .lean()
       .then((results) => {
+        logger.info(results.length);
         resolve(results);
       })
       .catch((error) => {
@@ -38,6 +41,19 @@ exports.getSingleLead = (leadId) => {
       .lean()
       .then((result) => {
         resolve(result);
+      })
+      .catch((error) => {
+        logger.error(error);
+        reject(error);
+      });
+  });
+};
+
+exports.getLeadsCount = (condition) => {
+  return new Promise((resolve, reject) => {
+    LeadModel.countDocuments(condition)
+      .then((count) => {
+        resolve(count);
       })
       .catch((error) => {
         logger.error(error);

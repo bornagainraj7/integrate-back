@@ -11,4 +11,7 @@ router.put('/update/:leadId', authMiddleware.isAuthorised, LeadController.update
 
 router.get('/get', authMiddleware.isAuthorised, LeadController.getLeadsByUser);
 
+router.get('/count', authMiddleware.isAuthorised, LeadController.countLeadsByUser);
+
+
 module.exports = router;

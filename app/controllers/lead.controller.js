@@ -98,13 +98,13 @@ exports.getLeadsByUser = async (req, res) => {
   try {
     const leadData = await cache._get(userIdForLead);
     if (!leadData) {
-      allLeads = await leadLib.getLeads(condition);
+      allLeads = await leadLib.getLeads(condition, page, size);
       /* set cache */
       cache._set(userIdForLead, JSON.stringify(allLeads));
     } else {
       allLeads = JSON.parse(leadData);
       logger.info('From Case....', leadData);
-   }
+    }
 
     return responseLib.success(res, 200, allLeads, 'All leads for the user fetched succcessfully');
   } catch (error) {

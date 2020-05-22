@@ -24,7 +24,7 @@ exports.getAllInsuranceCompaies = async (req, res) => {
       res,
       200,
       insCompanies,
-      'All Insurance Companies fetched successfully'
+      'All Insurance Companies fetched successfully',
     );
   } catch (error) {
     logger.error(error);

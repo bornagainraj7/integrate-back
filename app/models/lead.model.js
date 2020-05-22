@@ -71,4 +71,4 @@ leadSchema.pre('updateOne', function (next) {
 module.exports = mongoose.model('lead', leadSchema, 'lead');
 
 
-// name, email, phone, policy_number, policy_type(policyTypeId), (companyId), (CompailaintTypeId),
+// name, email, phone, policy_type(policyTypeId), (companyId), (CompailaintTypeId),

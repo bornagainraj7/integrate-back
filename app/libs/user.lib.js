@@ -21,7 +21,6 @@ exports.getSingleUserFromUsers = (condition) => {
 };
 
 exports.updateUserInUsers = (query, data) => {
-  logger.info(query);
   return new Promise((resolve, reject) => {
     UserModel.updateOne(query, data)
       .then((result) => {

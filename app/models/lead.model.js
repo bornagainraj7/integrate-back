@@ -34,7 +34,7 @@ const leadSchema = mongoose.Schema({
   assign_date: { type: Date },
   assign_to: { type: String },
   follow_date: { type: Date },
-  docs: [{ type: String }],
+  doc: [{ type: String }],
   claim_amount: { type: String },
   ivr_discription: { type: String },
   communication: [{
@@ -67,6 +67,10 @@ leadSchema.pre('updateOne', function (next) {
   return next();
 });
 
+leadSchema.pre('updateMany', function (next) {
+  this.updatedAt = Date.now();
+  return next();
+});
 
 module.exports = mongoose.model('lead', leadSchema, 'lead');
 

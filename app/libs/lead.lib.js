@@ -24,7 +24,6 @@ exports.getLeads = (condition, page, size) => {
       .limit(size)
       .lean()
       .then((results) => {
-        logger.info(results.length);
         resolve(results);
       })
       .catch((error) => {
@@ -38,6 +37,8 @@ exports.getSingleLead = (leadId) => {
   return new Promise((resolve, reject) => {
     LeadModel.findById(leadId)
       .populate('userId')
+      .populate('policyTypeId')
+      .populate('complaintTypeId')
       .lean()
       .then((result) => {
         resolve(result);
@@ -53,7 +54,25 @@ exports.getLeadsCount = (condition) => {
   return new Promise((resolve, reject) => {
     LeadModel.countDocuments(condition)
       .then((count) => {
+        logger.info(count);
         resolve(count);
+      })
+      .catch((error) => {
+        logger.error(error);
+        reject(error);
+      });
+  });
+};
+
+
+exports.updateLead = (query, data) => {
+  return new Promise((resolve, reject) => {
+    LeadModel.updateOne(query, data)
+      .then((result) => {
+        if (result.nModified > 0) {
+          resolve('updated');
+        }
+        reject(new Error('No lead modified'));
       })
       .catch((error) => {
         logger.error(error);

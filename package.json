@@ -21,6 +21,7 @@
     "moment": "^2.25.3",
     "mongoose": "^5.9.13",
     "mongoose-unique-validator": "^2.0.3",
+    "multer": "^1.4.2",
     "nodemailer": "^6.4.6",
     "nodemailer-postmark-transport": "^3.0.0",
     "redis": "^3.0.2",

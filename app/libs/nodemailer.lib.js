@@ -11,6 +11,7 @@ const transport = nodemailer.createTransport(postmarkTransport({
 }));
 
 exports.signUpEmail = (userData, token) => {
+  logger.info();
   const mailBody = `Dear <strong>${userData.name}</strong>,<br>
                     Welcome to Insurance Samadhan family, we are delighted to have you on board. Let's build an eco-system which is a win win for all the stakeholders in the industry.
                     We look forward to work with you.<br>
@@ -32,22 +33,22 @@ exports.signUpEmail = (userData, token) => {
   const mailOptions = {
     from: 'corporate@insurancesamadhan.com',
     to: `${userData.email}`,
-    cc: 'deepak@insurancesamadhan.com',
+    // cc: 'deepak@insurancesamadhan.com',
     subject: 'Welcome From Insurance Samadhan',
     html: mailBody,
   };
 
   return new Promise((resolve, reject) => {
-    if (config.env !== 'dev') {
-      transport.sendMail(mailOptions)
-        .then((result) => {
-          return resolve(result);
-        })
-        .catch((error) => {
-          logger.error(error);
-          return reject(error);
-        });
-    }
+    // if (config.env !== 'dev') {
+    transport.sendMail(mailOptions)
+      .then((result) => {
+        return resolve(result);
+      })
+      .catch((error) => {
+        logger.error(error);
+        return reject(error);
+      });
+    // }
   });
 };
 
@@ -62,27 +63,27 @@ exports.leadSubmittedEmail = async (leadData) => {
                     <strong>The Most trusted platform for resolving insurance complaints in INDIA</strong>`;
 
   return new Promise((resolve, reject) => {
-    if (config.env !== 'dev') {
-      userLib.getSingleUserFromUsers({ _id: leadData.userId })
-        .then((userData) => {
-          mailOptions = {
-            from: 'corporate@insurancesamadhan.com',
-            to: `${leadData.email}`,
-            cc: `deepak@insurancesamadhan.com, ${userData.email}`,
-            subject: 'Query Submitted at Insurance Samadhan',
-            html: mailBody,
-          };
+    // if (config.env !== 'dev') {
+    userLib.getSingleUserFromUsers({ _id: leadData.userId })
+      .then((userData) => {
+        mailOptions = {
+          from: 'corporate@insurancesamadhan.com',
+          to: `${leadData.email}`,
+          cc: `${userData.email}`,
+          subject: 'Query Submitted at Insurance Samadhan',
+          html: mailBody,
+        };
 
-          return transport.sendMail(mailOptions);
-        })
-        .then((result) => {
-          resolve(result);
-        })
-        .catch((error) => {
-          logger.error(error);
-          reject(error);
-        });
-    }
+        return transport.sendMail(mailOptions);
+      })
+      .then((result) => {
+        resolve(result);
+      })
+      .catch((error) => {
+        logger.error(error);
+        reject(error);
+      });
+    // }
   });
 };
 

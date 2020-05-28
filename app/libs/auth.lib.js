@@ -21,8 +21,6 @@ exports.getSingleUserFromAuth = (condition) => {
 };
 
 exports.updateUserInAuth = (query, data) => {
-  logger.info(query);
-  logger.info(data);
   return new Promise((resolve, reject) => {
     AuthModel.updateOne(query, data)
       .then((result) => {

@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const http = require('http');
+const path = require('path');
 // const csrf = require('csurf');
 const bodyParser = require('body-parser');
 const logger = require('tracer').colorConsole();
@@ -23,8 +24,11 @@ const MONGODB_URI = `mongodb://127.0.0.1:27017/${config.db}`;
 // });
 
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// Static access
+app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 
 // Set Headers for CORS

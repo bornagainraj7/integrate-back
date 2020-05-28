@@ -21,6 +21,7 @@ const authSchema = mongoose.Schema({
   password: { type: String },
   validUpto: { type: Date },
   isVerified: { type: Boolean },
+  isAuthorized: { type: Boolean },
   secretKey: { type: String },
   createdAt: { type: Number },
   updatedAt: { type: Number },

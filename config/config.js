@@ -24,6 +24,8 @@ const config = {
     pending_lead_report_key: 1,
     pending_lead_report_time: '11:12:00',
     frontend: 'http://localhost:4200/',
+    email: true,
+    redis: false,
   },
 
   stage: {
@@ -42,6 +44,8 @@ const config = {
     pending_lead_report_time: '17:15:00',
     pending_lead_report_key: 1,
     frontend: 'http://stage.integrate.insurancesamadhan.com/',
+    email: true,
+    redis: false,
   },
 
   prod: {
@@ -60,6 +64,8 @@ const config = {
     pending_lead_report_time: '17:15:00',
     pending_lead_report_key: 1,
     frontend: 'http://integrate.insurancesamadhan.com/',
+    email: true,
+    redis: false,
   },
 };
 

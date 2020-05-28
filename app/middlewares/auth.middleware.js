@@ -20,7 +20,10 @@ exports.isAuthorised = (req, res, next) => {
         decoded = result;
         return authLib.getSingleUserFromAuth({ token });
       })
-      .then(() => {
+      .then((authData) => {
+        if (!authData.isAuthorized) {
+          throw new Error('not-authorized');
+        }
         req.user = {
           ...decoded,
           token,
@@ -31,6 +34,10 @@ exports.isAuthorised = (req, res, next) => {
         logger.error(error);
         if (error.message === 'No User found') {
           return responseLib.error(res, 401, null, 'It seems like you need to login first');
+        }
+
+        if (error.message === 'not-authorized') {
+          return responseLib.error(res, 401, null, 'Please allow some time for our team to evalute your application');
         }
         return responseLib.error(res, 401, null, 'Error while verifying Authtoken');
       });
@@ -69,6 +76,7 @@ exports.logout = (req, res, next) => {
   } else {
     token = req.query.authorization || req.params.authorization || req.body.authorization;
   }
+  // logger.info(token);
   req.user = {
     token,
   };

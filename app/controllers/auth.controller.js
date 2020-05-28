@@ -25,7 +25,7 @@ exports.signupUser = (req, res) => {
   const createAccount = () => {
     return new Promise((resolve, reject) => {
       if (!userType) {
-        userType = 'Advisor';
+        userType = '3RDPARTY';
       }
       const user = new UserModel({
         name,
@@ -70,6 +70,7 @@ exports.signupUser = (req, res) => {
             password: hash,
             validUpto: now,
             isVerified: false,
+            isAuthorized: false,
           });
           return auth.save();
         })
@@ -102,7 +103,10 @@ exports.signupUser = (req, res) => {
       };
       return responseLib.success(res, 201, userData, 'Registration successful, please check you registered email address for a confirmation and click on the confirmation link.');
     } catch (error) {
-      logger.error(error);
+      logger.error(error.name);
+      if (error.name === 'ValidationError') {
+        return responseLib.error(res, 403, null, 'Please use different email or mobile number');
+      }
       return responseLib.error(res, 500, null, 'Server error occured, try again later');
     }
   })();
@@ -122,11 +126,18 @@ exports.loginUser = async (req, res) => {
     userData = await userLib.getSingleUserFromUsers({ email });
     authData = await authLib.getSingleUserFromAuth({ email });
 
-    if (!userData.isAgreed && !userData.isVerified) {
+    if (!userData.isAgreed || !authData.isVerified) {
       throw new Error('not-verified');
     }
-    await bcryptjs.compare(password, authData.password);
 
+    if (!userData.isVerified) {
+      throw new Error('not-allowed');
+    }
+
+    const compare = await bcryptjs.compare(password, authData.password);
+    if (!compare) {
+      throw new Error('no-password-match');
+    }
     token = await tokenLib.generateToken(userData);
     now.setDate(now.getDate() + 30);
     const data = {
@@ -151,12 +162,18 @@ exports.loginUser = async (req, res) => {
     return responseLib.success(res, 201, user, 'User Logged-in successfully');
   } catch (error) {
     logger.error(error);
+    if (error.message === 'not-allowed') {
+      return responseLib.error(res, 403, null, 'Please allow some time for our team to evalute your application');
+    }
+
     if (error.message === 'not-verified') {
-      return responseLib.error(res, 401, null, 'Please click on the link in your registered email and verify your account to login');
+      return responseLib.error(res, 403, null, 'Please click on the link in your registered email and verify your account to login');
     }
-    if (error.message === 'No user found') {
-      return responseLib.error(res, 401, null, 'We had error finding the user with the given credentials');
+
+    if (error.message === 'No User found' || error.message === 'no-password-match') {
+      return responseLib.error(res, 401, null, 'There was a problem with your email or password');
     }
+
     return responseLib.error(res, 500, null, 'Server Error Occurred');
   }
 };
@@ -164,16 +181,18 @@ exports.loginUser = async (req, res) => {
 exports.verifyUser = async (req, res) => {
   const { userId } = req.user;
   const { token } = req.params;
+  // eslint-disable-next-line
   let userData;
   let decoded;
   const userUpdate = {
     isActive: true,
-    isVerified: true,
+    // isVerified: true,  // need to do from the admin panel
     isAgreed: true,
     agreedOn: new Date(),
   };
   const authUpdate = {
     isVerified: true,
+    // isAuthorized: true, // need to do from the admin panel
   };
   try {
     decoded = await tokenLib.verifyToken(token);
@@ -192,7 +211,7 @@ exports.verifyUser = async (req, res) => {
       tokenExpiry: issueDate.getTime(),
     };
 
-    return responseLib.success(res, 200, userData, 'User verified successfully');
+    return responseLib.success(res, 200, null, 'User verified successfully');
   } catch (error) {
     logger.error(error);
     if (error.message === 'No user modified in Auth' || error.message === 'No user modified in User') {
@@ -208,7 +227,7 @@ exports.verifyUser = async (req, res) => {
         token: token,
         tokenExpiry: issueDate.getTime(),
       };
-      return responseLib.success(res, 200, userData, 'User already verified');
+      return responseLib.success(res, 200, null, 'User already verified');
     }
     return responseLib.error(res, 500, null, 'Server Error Occurred');
   }
@@ -216,7 +235,7 @@ exports.verifyUser = async (req, res) => {
 
 
 exports.logout = async (req, res) => {
-  const { token } = req.user;
+  const token = req.user.token || req.query.token || req.params.token;
   const query = { token };
   const data = { token: '', validUpto: new Date() };
   try {

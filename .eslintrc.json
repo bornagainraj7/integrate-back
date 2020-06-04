@@ -25,6 +25,7 @@
     "arrow-body-style": "off",
     "no-underscore-dangle": "off",
     "consistent-return": "off",
+    "no-param-reassign": "off",
     "quote-props": "off",
     "node/no-unsupported-features/es-syntax": "off"
   }

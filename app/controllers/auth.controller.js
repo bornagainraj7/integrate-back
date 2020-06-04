@@ -25,13 +25,14 @@ exports.signupUser = (req, res) => {
   const createAccount = () => {
     return new Promise((resolve, reject) => {
       if (!userType) {
-        userType = '3RDPARTY';
+        userType = 'Vendor';
       }
       const user = new UserModel({
         name,
         email,
         mobile,
         userType,
+        userName: `INSA${Date.now()}`,
         isBlocked: false,
         isAgreed: false,
         isActive: false,
@@ -107,7 +108,7 @@ exports.signupUser = (req, res) => {
       if (error.name === 'ValidationError') {
         return responseLib.error(res, 403, null, 'Please use different email or mobile number');
       }
-      return responseLib.error(res, 500, null, 'Server error occured, try again later');
+      return responseLib.error(res, 500, null, 'Server Error Occurred');
     }
   })();
 };
@@ -126,12 +127,16 @@ exports.loginUser = async (req, res) => {
     userData = await userLib.getSingleUserFromUsers({ email });
     authData = await authLib.getSingleUserFromAuth({ email });
 
-    if (!userData.isAgreed || !authData.isVerified) {
+    if (!authData.isVerified) {
       throw new Error('not-verified');
     }
 
     if (!userData.isVerified) {
       throw new Error('not-allowed');
+    }
+
+    if (!userData.isAgreed) {
+      throw new Error('not-agreed');
     }
 
     const compare = await bcryptjs.compare(password, authData.password);
@@ -159,15 +164,19 @@ exports.loginUser = async (req, res) => {
       tokenExpiry: now.getTime(),
     };
 
-    return responseLib.success(res, 201, user, 'User Logged-in successfully');
+    return responseLib.success(res, 201, user, 'User logged-in successfully');
   } catch (error) {
     logger.error(error);
     if (error.message === 'not-allowed') {
-      return responseLib.error(res, 403, null, 'Please allow some time for our team to evalute your application');
+      return responseLib.error(res, 403, null, 'Please allow some time for our team to evaluate your application');
     }
 
     if (error.message === 'not-verified') {
       return responseLib.error(res, 403, null, 'Please click on the link in your registered email and verify your account to login');
+    }
+
+    if (error.message === 'not-agreed') {
+      return responseLib.error(res, 403, null, 'Please click on the link in your registered email and agree to our contract to login');
     }
 
     if (error.message === 'No User found' || error.message === 'no-password-match') {
@@ -186,17 +195,13 @@ exports.verifyUser = async (req, res) => {
   let decoded;
   const userUpdate = {
     isActive: true,
-    // isVerified: true,  // need to do from the admin panel
-    isAgreed: true,
-    agreedOn: new Date(),
   };
   const authUpdate = {
     isVerified: true,
-    // isAuthorized: true, // need to do from the admin panel
   };
   try {
     decoded = await tokenLib.verifyToken(token);
-    await userLib.updateUserInUsers({ _id: userId, agreedOn: undefined }, userUpdate);
+    await userLib.updateUserInUsers({ _id: userId }, userUpdate);
     await authLib.updateUserInAuth({ userId }, authUpdate);
     const issueDate = new Date(decoded.jwtId);
     issueDate.setDate(issueDate.getDate() + 30);
@@ -233,6 +238,41 @@ exports.verifyUser = async (req, res) => {
   }
 };
 
+exports.signContract = async (req, res) => {
+  const { userId } = req.params || req.query;
+  const userUpdate = {
+    isAgreed: true,
+    agreedOn: new Date(),
+  };
+
+  try {
+    await userLib.updateUserInUsers({ _id: userId }, userUpdate);
+
+    return responseLib.success(res, 200, null, 'You\'ve successfully signed our contract');
+  } catch (error) {
+    logger.error(error);
+    return responseLib.error(res, 500, null, 'Server Error Occurred');
+  }
+};
+
+
+exports.authorize = async (req, res) => {
+  const { userId } = req.params || req.query;
+  const userUpdate = { isVerified: true };
+  const authUpdate = { isAuthorized: true };
+
+  try {
+    const userData = await userLib.getSingleUserFromUsers({ _id: userId });
+    await userLib.updateUserInUsers({ _id: userId }, userUpdate);
+    await authLib.updateUserInAuth({ userId }, authUpdate);
+
+    await nodemailerLib.accountAuthorizeEmail(userData);
+    return responseLib.success(res, 200, null, 'User is now authorized and can login');
+  } catch (error) {
+    logger.error(error);
+    return responseLib.error(res, 500, null, 'Server Error Occurred');
+  }
+};
 
 exports.logout = async (req, res) => {
   const token = req.user.token || req.query.token || req.params.token;
@@ -240,7 +280,7 @@ exports.logout = async (req, res) => {
   const data = { token: '', validUpto: new Date() };
   try {
     await authLib.updateUserInAuth(query, data);
-    return responseLib.success(res, 201, null, 'You\'ve Logged out successfully');
+    return responseLib.success(res, 200, null, 'You\'ve logged out successfully');
   } catch (error) {
     logger.error(error);
     return responseLib.success(res, 500, null, 'Server Error Occurred');

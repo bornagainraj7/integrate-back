@@ -11,6 +11,7 @@ const leadRoutes = require('./app/routes/lead.routes');
 const complaintTypeRoutes = require('./app/routes/complaintType.routes');
 const insuranceCompanyRoutes = require('./app/routes/insuranceCompany.routes');
 const policyTypeRoutes = require('./app/routes/policyType.routes');
+const userRoutes = require('./app/routes/user.routes');
 
 const app = express();
 const MONGODB_URI = `mongodb://127.0.0.1:27017/${config.db}`;
@@ -29,6 +30,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 // Static access
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+app.use('/apidocs', express.static(path.join(__dirname, '/apidoc')));
 
 
 // Set Headers for CORS
@@ -104,6 +106,7 @@ app.use('/api/v1/lead', leadRoutes);
 app.use('/api/v1/ins-comp', insuranceCompanyRoutes);
 app.use('/api/v1/com-type', complaintTypeRoutes);
 app.use('/api/v1/policy-type', policyTypeRoutes);
+app.use('/api/v1/user', userRoutes);
 
 
 app.set('port', port);

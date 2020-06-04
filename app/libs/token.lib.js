@@ -15,6 +15,7 @@ exports.generateToken = (data) => {
         mobile: data.mobile,
         name: data.name,
         userType: data.userType,
+        userName: data.userName,
       };
       const expiry = {
         expiresIn: '30d',

@@ -5,6 +5,7 @@ const UserModel = require('../models/user.model');
 exports.getSingleUserFromUsers = (condition) => {
   return new Promise((resolve, reject) => {
     UserModel.findOne(condition)
+      .select('-__v')
       .lean()
       .then((user) => {
         if (!user) {
@@ -22,7 +23,7 @@ exports.getSingleUserFromUsers = (condition) => {
 
 exports.updateUserInUsers = (query, data) => {
   return new Promise((resolve, reject) => {
-    UserModel.updateOne(query, data)
+    UserModel.updateOne(query, data, { new: true })
       .then((result) => {
         if (result.nModified > 0) {
           resolve('Updated');

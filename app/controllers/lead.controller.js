@@ -2,7 +2,9 @@ const moment = require('moment');
 const fs = require('fs');
 const util = require('util');
 const logger = require('tracer').colorConsole();
+const axios = require('axios').default;
 const LeadModel = require('../models/lead.model');
+const LeadCounterModel = require('../models/leadCounter.model');
 const leadLib = require('../libs/lead.lib');
 const responseLib = require('../libs/response.lib');
 const nodemailerLib = require('../libs/nodemailer.lib');
@@ -10,9 +12,31 @@ const nodemailerLib = require('../libs/nodemailer.lib');
 
 exports.newLead = async (req, res) => {
   const { body } = req;
+  const search = { email: body.email };
   try {
-    const leadCount = await leadLib.count({});
-    const leadId = moment().utcOffset(330).format(`YYYY-MM-DD-${leadCount + 1}`);
+    const response = await axios.post('https://api.insurancesamadhan.com/lead/search', search);
+    logger.info(response.data);
+    if (response.data.success) {
+      if (response.data.data.length > 0) {
+        if (response.data.data[0].status === 'PENDING') {
+          throw new Error('already');
+        }
+      }
+    }
+
+    const presentLead = await leadLib.getLeadsByCondition(search);
+    if (presentLead.length > 0) {
+      if (presentLead[0].status === 'PENDING') {
+        throw new Error('already');
+      }
+    }
+
+    let leadCount = await leadLib.leadCounter();
+    if (!leadCount) {
+      leadCount = 1;
+      await new LeadCounterModel({ _id: 'LeadCounter', counter: 1 }).save();
+    }
+    const leadId = moment().utcOffset(330).format(`YYYY-MM-DD-${leadCount}`);
 
     const newLead = new LeadModel({
       // eslint-disable-next-line
@@ -21,11 +45,13 @@ exports.newLead = async (req, res) => {
       userId: req.user.userId,
       assign_date: Date.now(),
       createdAt: Date.now(),
+      src: 'vendor',
+      med: req.user.userId,
       updatedAt: Date.now(),
-      communication: {
-        'com_date': new Date(),
-        'com_dis': body.ivr_discription,
-      },
+      // communication: {
+      //   'com_date': new Date(),
+      //   'com_dis': body.ivr_discription,
+      // },
       // created_date: Date.now(),
       // name: body.name,
       // email: body.email,
@@ -49,11 +75,69 @@ exports.newLead = async (req, res) => {
     });
 
     const lead = await newLead.save();
-
+    await leadLib.updateCounter();
     await nodemailerLib.leadSubmittedEmail(lead);
-    return responseLib.success(res, 201, lead, 'new lead added successfully');
+    return responseLib.success(res, 201, lead, 'New lead added successfully');
   } catch (error) {
     logger.error(error);
+    if (error.message === 'already') {
+      return responseLib.error(res, 409, null, 'We already have your lead, please be patient we\'ll reply soon');
+    }
+    return responseLib.error(res, 500, null, 'Server Error Occurred');
+  }
+};
+
+exports.leadWithoutToken = async (req, res) => {
+  const { userId } = req.params || req.query;
+  const { body } = req;
+  const search = { email: body.email };
+
+  try {
+    const response = await axios.post('https://api.insurancesamadhan.com/lead/search', search);
+    logger.info(response.data);
+    if (response.data.success) {
+      if (response.data.data.length > 0) {
+        if (response.data.data[0].status === 'PENDING') {
+          throw new Error('already');
+        }
+      }
+    }
+
+    const presentLead = await leadLib.getLeadsByCondition(search);
+
+    if (presentLead.length > 0) {
+      if (presentLead[0].status === 'PENDING') {
+        throw new Error('already');
+      }
+    }
+
+    let leadCount = await leadLib.leadCounter();
+    if (!leadCount) {
+      leadCount = 1;
+      await new LeadCounterModel({ _id: 'LeadCounter', counter: 1 }).save();
+    }
+    const leadId = moment().utcOffset(330).format(`YYYY-MM-DD-${leadCount}`);
+
+    const newLead = new LeadModel({
+      ...body,
+      leadId: leadId,
+      userId: userId,
+      assign_date: Date.now(),
+      createdAt: Date.now(),
+      src: 'vendor',
+      med: userId,
+      updatedAt: Date.now(),
+    });
+
+    const lead = await newLead.save();
+    await leadLib.updateCounter();
+    await nodemailerLib.leadSubmittedEmail(lead);
+    return responseLib.success(res, 201, lead, 'New lead added successfully');
+  } catch (error) {
+    logger.error(error);
+    if (error.message === 'already') {
+      return responseLib.error(res, 409, null, 'We already have your lead, please be patient we\'ll reply soon');
+    }
     return responseLib.error(res, 500, null, 'Server Error Occurred');
   }
 };
@@ -113,7 +197,7 @@ exports.countLeadsByUser = async (req, res) => {
   const condition = { userId };
   try {
     const count = await leadLib.getLeadsCount(condition);
-    return responseLib.success(res, 200, count, 'Number of leads fetched');
+    return responseLib.success(res, 200, count, 'Number of leads fetched successfully');
   } catch (error) {
     logger.error(error);
     return responseLib.error(res, 500, null, 'Server Error Occurred');
@@ -141,4 +225,95 @@ exports.addDocs = async (req, res) => {
     logger.error(error);
     return responseLib.error(res, 500, null, 'Server Error Occurred');
   }
+};
+
+
+exports.addComment = async (req, res) => {
+  const { userId } = req.user;
+  const { name } = req.user;
+  const { userName } = req.user;
+  const { body } = req;
+  const { leadId } = req.params;
+
+
+  const update = {
+    comment: body.comment,
+    com_date: new Date(),
+    name,
+    userId,
+    userName,
+  };
+
+  try {
+    const data = { $push: { communication: update } };
+    await leadLib.updateLead({ _id: leadId }, data);
+    return responseLib.success(res, 201, null, 'Comment added successfully');
+  } catch (error) {
+    logger.error(error);
+    return responseLib.error(res, 500, null, 'Server Error Occurred');
+  }
+};
+
+
+exports.filterLead = async (req, res) => {
+  const { search } = req.params || req.query;
+  const page = parseInt(req.query.page, 10);
+  const size = parseInt(req.query.size, 10);
+  const query = { $and: [] };
+  const regex = new RegExp(search);
+  const queryOR = { $or: [] };
+
+  const name = {
+    name: { $regex: regex, $options: 'i' },
+  };
+  queryOR.$or.push(name);
+
+  const phone = {
+    phone: { $regex: regex, $options: 'i' },
+  };
+  queryOR.$or.push(phone);
+
+  const email = {
+    email: { $regex: regex, $options: 'i' },
+  };
+  queryOR.$or.push(email);
+
+  const leadId = {
+    leadId: { $regex: regex, $options: 'i' },
+  };
+  queryOR.$or.push(leadId);
+
+  const status = {
+    status: { $regex: regex, $options: 'i' },
+  };
+  queryOR.$or.push(status);
+
+  query.$and.push(queryOR);
+
+  logger.info(query);
+
+  const pipeline = [
+    { $match: query },
+    {
+      $facet: {
+        count: [{ $count: 'total' }],
+        results: [{ $skip: page * size }, { $limit: size }],
+      },
+    },
+  ];
+
+  const stream = LeadModel.aggregate(pipeline).cursor().exec();
+  stream.eachAsync((data) => {
+    logger.info(data);
+    const leadData = {
+      count: data.count.length > 0 ? data.count[0].total : 0,
+      data: data.results,
+    };
+
+    return responseLib.success(res, 200, leadData.data, 'Data filtered successfully');
+  })
+    .catch((error) => {
+      logger.error(error);
+      return responseLib.error(res, 500, null, 'Server Error Occurred');
+    });
 };

@@ -37,7 +37,7 @@ exports.isAuthorised = (req, res, next) => {
         }
 
         if (error.message === 'not-authorized') {
-          return responseLib.error(res, 401, null, 'Please allow some time for our team to evalute your application');
+          return responseLib.error(res, 401, null, 'Please allow some time for our team to evaluate your application');
         }
         return responseLib.error(res, 401, null, 'Error while verifying Authtoken');
       });

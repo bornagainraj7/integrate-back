@@ -11,6 +11,10 @@ router.post('/login', AuthController.loginUser);
 
 router.get('/logout', authMiddleware.logout, AuthController.logout);
 
+router.get('/authorize/:userId', AuthController.authorize);
+
+router.get('/contract/:userId', AuthController.signContract);
+
 router.get('/verify/:token', authMiddleware.verifyFirstTime, AuthController.verifyUser);
 
 module.exports = router;

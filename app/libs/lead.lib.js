@@ -1,5 +1,6 @@
 const logger = require('tracer').colorConsole();
 const LeadModel = require('../models/lead.model');
+const LeadCounterModel = require('../models/leadCounter.model');
 
 exports.count = (condition) => {
   return new Promise((resolve, reject) => {
@@ -8,6 +9,37 @@ exports.count = (condition) => {
         resolve(count);
       })
       .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+exports.leadCounter = () => {
+  return new Promise((resolve, reject) => {
+    LeadCounterModel.findById('LeadCounter')
+      .lean()
+      .then((result) => {
+        if (!result) {
+          return resolve(result);
+        }
+        return resolve(result.counter);
+      })
+      .catch((error) => {
+        logger.error(error);
+        reject(error);
+      });
+  });
+};
+
+exports.updateCounter = () => {
+  return new Promise((resolve, reject) => {
+    LeadCounterModel.findByIdAndUpdate({ _id: 'LeadCounter' }, { $inc: { counter: 1 } }, { upsert: true, new: true })
+      .then((result) => {
+        // logger.info(result);
+        resolve(result);
+      })
+      .catch((error) => {
+        logger.error(error);
         reject(error);
       });
   });
@@ -50,11 +82,25 @@ exports.getSingleLead = (leadId) => {
   });
 };
 
+exports.getLeadsByCondition = (condition) => {
+  return new Promise((resolve, reject) => {
+    LeadModel.find(condition)
+      .select('-__v')
+      .lean()
+      .then((result) => {
+        resolve(result);
+      })
+      .catch((error) => {
+        logger.error(error);
+        reject(error);
+      });
+  });
+};
+
 exports.getLeadsCount = (condition) => {
   return new Promise((resolve, reject) => {
     LeadModel.countDocuments(condition)
       .then((count) => {
-        logger.info(count);
         resolve(count);
       })
       .catch((error) => {
@@ -67,7 +113,7 @@ exports.getLeadsCount = (condition) => {
 
 exports.updateLead = (query, data) => {
   return new Promise((resolve, reject) => {
-    LeadModel.updateOne(query, data)
+    LeadModel.updateOne(query, data, { new: true })
       .then((result) => {
         if (result.nModified > 0) {
           resolve('updated');

@@ -3,7 +3,7 @@ const uuid = require('uuid');
 
 const leadSchema = mongoose.Schema({
   _id: { type: String, default: uuid.v4 },
-  userId: { type: String, ref: 'user', required: true },
+  userId: { type: String, ref: 'user', required: true }, // vendorId
   user_id: { type: String }, // IVR lead user_id
   leadId: { type: String },
   name: { type: String, required: true },
@@ -38,9 +38,12 @@ const leadSchema = mongoose.Schema({
   claim_amount: { type: String },
   ivr_discription: { type: String },
   communication: [{
+    _id: { type: String, default: uuid.v4 },
     comment: { type: String },
     com_date: { type: Date },
-    com_dis: { type: String },
+    name: { type: String },
+    userName: { type: String },
+    userId: { type: String, ref: 'user' },
   }],
   // created_date: { type: Date },
   updatedAt: { type: Number },

@@ -5,7 +5,7 @@ const rootPath = path.normalize(path.join(__dirname, '/..'));
 const env = process.env.NODE_ENV || 'dev';
 const port = process.env.PORT;
 // const dbConnection = process.env.MONGO_CONNECTION;
-const appName = 'Insurance-Samadhan';
+const appName = 'Insurance Samadhan Vendors Portal';
 
 const config = {
   dev: {
@@ -14,7 +14,7 @@ const config = {
       name: appName,
     },
     port: port || 3500,
-    db: 'is-dev',
+    db: 'VendorsDev',
     payment_reminder_key: 1,
     follow_reminder_key: 1,
     payment_job_time: '14:00:00',
@@ -34,7 +34,7 @@ const config = {
       name: appName,
     },
     port: port || 4500,
-    db: 'is-stage',
+    db: 'VendorsStage',
     payment_reminder_key: 0,
     follow_reminder_key: 1,
     payment_job_time: '14:00:00',
@@ -43,7 +43,7 @@ const config = {
     hearing_reminder_key: 1,
     pending_lead_report_time: '17:15:00',
     pending_lead_report_key: 1,
-    frontend: 'http://stage.integrate.insurancesamadhan.com/',
+    frontend: 'http://vendors.stage.insurancesamadhan.com/',
     email: true,
     redis: false,
   },
@@ -54,7 +54,7 @@ const config = {
       name: appName,
     },
     port: port || 5500,
-    db: 'is-prod',
+    db: 'VendorsProd',
     payment_reminder_key: 1,
     follow_reminder_key: 1,
     payment_job_time: '14:00:00',
@@ -63,7 +63,7 @@ const config = {
     hearing_reminder_key: 1,
     pending_lead_report_time: '17:15:00',
     pending_lead_report_key: 1,
-    frontend: 'http://integrate.insurancesamadhan.com/',
+    frontend: 'http://vendors.insurancesamadhan.com/',
     email: true,
     redis: false,
   },

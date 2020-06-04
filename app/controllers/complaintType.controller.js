@@ -1,10 +1,32 @@
 const logger = require('tracer').colorConsole();
+const axios = require('axios').default;
 const ComplaintTypeModel = require('../models/complaintType.model');
 const responseLib = require('../libs/response.lib');
 
-exports.getAllComplaintTypes = async (req, res) => {
+exports.getComplaintTypes = async (req, res) => {
+  const { policyTypeId } = req.params || req.query;
+  let complaints;
   try {
-    const complaints = await ComplaintTypeModel.find().lean();
+    // const complaintTypes = await ComplaintTypeModel.find().select('-__v').lean();
+    const response = await axios.get(`https://api.insurancesamadhan.com/complaint_type?policyTypeId=${policyTypeId}`);
+    if (response.data.success) {
+      complaints = response.data.data
+        .map((data) => {
+          delete data.__v;
+          return data;
+        })
+        .sort((a, b) => {
+          return a.name > b.name ? 1 : -1;
+        });
+    }
+    complaints.forEach(async (complaint) => {
+      // await new ComplaintTypeModel(complaint).save();
+      await ComplaintTypeModel.findByIdAndUpdate(
+        { _id: complaint._id },
+        complaint,
+        { upsert: true, new: true },
+      );
+    });
     return responseLib.success(res, 200, complaints, 'All Complaint Types fetched successfully');
   } catch (error) {
     logger.error(error);

@@ -5,6 +5,7 @@ const AuthModel = require('../models/auth.model');
 exports.getSingleUserFromAuth = (condition) => {
   return new Promise((resolve, reject) => {
     AuthModel.findOne(condition)
+      .select('-__v')
       .lean()
       .then((user) => {
         if (!user) {
